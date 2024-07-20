@@ -2,31 +2,53 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Колесо выбора</title>
+    <title>Выбор обуви для Ариши</title>
     <style>
         body {
-            background-color: lavender; /* лавандовый фон */
+            font-family: Arial, sans-serif;
+            background-color: lavender;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             height: 100vh;
             margin: 0;
         }
-
-        h1 {
-            margin: 20px;
-            color: #333;
-            text-align: center;
-        }
-
-        #canvas {
+        #wheel {
+            width: 500px;
+            height: 500px;
             border: 2px solid #333;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
         }
-
-        #spinButton {
-            margin-top: 20px;
-            padding: 10px 20px;
+        #wheel .segment {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(50% 50%, 100% 0, 100% 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-origin: 50% 50%;
+            color: white;
+            font-size: 20px;
+        }
+        #pointer {
+            position: absolute;
+            top: -1px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 20px 10px 0 10px;
+            border-color: black transparent transparent transparent;
+        }
+        button {
+            position: absolute;
+            bottom: 20px;
+            width: 100px;
+            height: 50px;
             font-size: 16px;
         }
     </style>
@@ -34,79 +56,33 @@
 <body>
     <h1>Какие туфли выбрать Арише?</h1>
     <div id="wheel">
-        <canvas id="canvas"></canvas>
+        <!-- Сегменты колеса будут добавлены динамически через JavaScript -->
     </div>
-    <button id="spinButton">Крутить колесо!</button>
+    <div id="pointer"></div>
+    <button onclick="spinWheel()">Крутить</button>
 
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 500;
-        canvas.height = 500;
+        const colors = ["Красные", "Зеленые", "Синие", "Желтые", "Черные", "Белые", "Розовые", "Оранжевые", "Голубые", "Фиолетовые", "Бежевые", "Серые", "Морская волна", "Темно-синие", "Коричневые", "Леопардовые"];
+        const wheel = document.getElementById('wheel');
+        const numSegments = colors.length;
+        const deg = 360 / numSegments;
 
-        const colors = ['Red', 'Blue', 'Green', 'Yellow', 'Orange', 'Purple', 'Pink', 'Brown', 'White', 'Black', 'Gray', 'Cyan', 'Magenta', 'Silver', 'Gold', 'Leopard'];
-        const slice = Math.PI * 2 / colors.length;
-
-        function drawWheel() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 2;
-            ctx.font = '14px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            colors.forEach((color, index) => {
-                ctx.fillStyle = color === 'Leopard' ? 'orange' : color;
-                ctx.beginPath();
-                ctx.moveTo(canvas.width / 2, canvas.height / 2);
-                ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, slice * index, slice * (index + 1));
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
-
-                let angle = slice * (index + 0.5);
-                let textRadius = canvas.width / 2 * 0.75;
-                let textX = canvas.width / 2 + textRadius * Math.cos(angle);
-                let textY = canvas.height / 2 + textRadius * Math.sin(angle);
-
-                let textColor = color === 'Leopard' ? 'Leopard' : color.charAt(0).toUpperCase() + color.slice(1);
-                ctx.fillStyle = 'white';
-                ctx.fillText(textColor, textX, textY);
-            });
+        for (let i = 0; i < numSegments; i++) {
+            let segment = document.createElement('div');
+            segment.style.backgroundColor = i === (numSegments - 1) ? 'brown' : `hsl(${i * 25}, 70%, 50%)`;
+            segment.style.transform = `rotate(${i * deg}deg)`;
+            segment.classList.add('segment');
+            segment.textContent = colors[i];
+            wheel.appendChild(segment);
         }
 
-        function spin() {
-            const rotations = 10;
-            const totalAngle = rotations * Math.PI * 2 + slice * 15;
-            let currentAngle = 0;
-
-            const spinTime = 3000;
-            const startTime = Date.now();
-
-            function animate() {
-                const elapsedTime = Date.now() - startTime;
-                const progress = elapsedTime / spinTime;
-
-                if (progress < 1) {
-                    currentAngle = totalAngle * progress;
-                    ctx.save();
-                    ctx.translate(canvas.width / 2, canvas.height / 2);
-                    ctx.rotate(currentAngle);
-                    ctx.translate(-canvas.width / 2, -canvas.height / 2);
-                    drawWheel();
-                    ctx.restore();
-                    requestAnimationFrame(animate);
-                } else {
-                    drawWheel();
-                }
-            }
-
-            animate();
+        function spinWheel() {
+            const fixedRotation = 3600; // Для долгого вращения
+            const leopardPosition = numSegments - 1; // Леопардовые туфли всегда в одном месте
+            const offset = 360 / numSegments / 2; // Полпути между двумя сегментами
+            wheel.style.transition = 'transform 4s ease-out';
+            wheel.style.transform = `rotate(${fixedRotation - leopardPosition * deg - offset}deg)`;
         }
-
-        document.getElementById('spinButton').addEventListener('click', spin);
-
-        drawWheel();
     </script>
 </body>
 </html>
